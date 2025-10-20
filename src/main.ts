@@ -12,7 +12,7 @@ async function bootstrap() {
   }));
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://leave-management-backend-118y.onrender.com'],
+    origin: ['http://localhost:3000', 'https://leave-management-frontend-ebon.vercel.app/'],
     credentials: true,
   });
 
