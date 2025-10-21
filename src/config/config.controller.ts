@@ -17,3 +17,4 @@ export class ConfigController {
     return this.configService.setShiftConfig(config, req.user);
   }
 }
+

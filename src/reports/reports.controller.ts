@@ -22,3 +22,4 @@ export class ReportsController {
     return this.reportsService.getMonthlyReport(year, month, req.user);
   }
 }
+

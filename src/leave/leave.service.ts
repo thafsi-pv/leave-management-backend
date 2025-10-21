@@ -103,7 +103,7 @@ export class LeaveService {
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const count = await this.prisma.leave.count({
+    const approvedCount = await this.prisma.leave.count({
       where: {
         shift,
         date: {
@@ -114,13 +114,26 @@ export class LeaveService {
       },
     });
 
+    const pendingCount = await this.prisma.leave.count({
+      where: {
+        shift,
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+        status: LeaveStatus.PENDING,
+      },
+    });
+
     const maxSlots = this.getMaxSlotsForShift(shift);
+    const totalUsed = approvedCount + pendingCount;
     
     return {
       shift,
       date,
-      used: count,
-      available: Math.max(0, maxSlots - count),
+      used: approvedCount,
+      pending: pendingCount,
+      available: Math.max(0, maxSlots - totalUsed),
       maxSlots,
     };
   }
@@ -146,9 +159,9 @@ export class LeaveService {
       const dateKey = currentDate.toISOString().split('T')[0];
       
       calendarData[dateKey] = {
-        shift1: { used: 0, available: 5 },
-        shift2: { used: 0, available: 5 },
-        night: { used: 0, available: 10 },
+        shift1: { used: 0, available: 5, pending: 0 },
+        shift2: { used: 0, available: 5, pending: 0 },
+        night: { used: 0, available: 10, pending: 0 },
       };
 
       const dayLeaves = leaves.filter(leave => 
@@ -156,9 +169,13 @@ export class LeaveService {
       );
 
       dayLeaves.forEach(leave => {
+        const shiftKey = leave.shift.toLowerCase();
         if (leave.status === LeaveStatus.APPROVED) {
-          calendarData[dateKey][leave.shift.toLowerCase()].used++;
-          calendarData[dateKey][leave.shift.toLowerCase()].available--;
+          calendarData[dateKey][shiftKey].used++;
+          calendarData[dateKey][shiftKey].available--;
+        } else if (leave.status === LeaveStatus.PENDING) {
+          calendarData[dateKey][shiftKey].pending++;
+          calendarData[dateKey][shiftKey].available--;
         }
       });
     }

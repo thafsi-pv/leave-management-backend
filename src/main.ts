@@ -14,6 +14,8 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000', // local dev
+      'http://localhost:3001', // local dev
+      'http://localhost:3002', // local dev
       'https://leave-management-frontend-ebon.vercel.app', // production frontend
     ],
     credentials: true,
